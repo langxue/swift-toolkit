@@ -343,6 +343,16 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             return nil
         }
     }
+    
+    func getWholePageText() async -> String? {
+        let result = await evaluateScript("readium.getWholePageText()")
+        do {
+            return try result.get() as? String
+        } catch {
+            log(.error, error)
+            return nil
+        }
+    }
 
     // MARK: - JS Messages
 

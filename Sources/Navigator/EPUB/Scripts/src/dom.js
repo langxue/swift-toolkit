@@ -66,6 +66,27 @@ export function findFirstVisibleLocator() {
   };
 }
 
+
+export function getWholePageText(){
+    const visibleElements = [];
+    const elements = document.querySelectorAll('p');
+
+    elements.forEach(element => {
+        const rect = element.getBoundingClientRect();
+        if (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        ) {
+            visibleElements.push(element.textContent);
+        }
+    });
+
+//    console.log(visibleElements.join('\n'));
+    return visibleElements.join('\n')
+}
+
 function findElement(rootElement) {
   for (var i = 0; i < rootElement.children.length; i++) {
     const child = rootElement.children[i];

@@ -681,6 +681,13 @@ open class EPUBNavigatorViewController: UIViewController,
             )
         }
     }
+    
+    public func getWholePageText() async -> String? {
+        guard let spreadView = paginationView?.currentView as? EPUBSpreadView else {
+            return nil
+        }
+        return await spreadView.getWholePageText()
+    }
 
     public func firstVisibleElementLocator() async -> Locator? {
         guard let spreadView = paginationView?.currentView as? EPUBSpreadView else {

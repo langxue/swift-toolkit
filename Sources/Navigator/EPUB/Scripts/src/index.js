@@ -8,7 +8,7 @@
 
 import "./gestures";
 import "./keyboard";
-import { findFirstVisibleLocator } from "./dom";
+import { findFirstVisibleLocator,getWholePageText } from "./dom";
 import {
   removeProperty,
   scrollLeft,
@@ -39,4 +39,5 @@ global.readium = {
 
   // DOM
   findFirstVisibleLocator: findFirstVisibleLocator,
+  getWholePageText: getWholePageText,
 };
