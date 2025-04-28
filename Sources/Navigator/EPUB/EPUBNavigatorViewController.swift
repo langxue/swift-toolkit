@@ -602,12 +602,38 @@ open class EPUBNavigatorViewController: UIViewController,
             spread: viewModel.spreadEnabled
         )
 
-        let initialIndex: Int = {
-            if let href = locator?.href, let foundIndex = self.spreads.firstIndexWithHREF(href) {
-                return foundIndex
-            } else {
-                return 0
+//        let initialIndex: Int = {
+//            if let href = locator?.href, let foundIndex = self.spreads.firstIndexWithHREF(href) {
+//                return foundIndex
+//            } else {
+//                return 0
+//            }
+//        }()
+        
+        let initialIndex: Int = await {
+            // 1. 检查是否存在有效的 href
+            if let href = locator?.href, href.string != "__paragraph" {
+                return self.spreads.firstIndexWithHREF(href) ?? 0
             }
+            
+            // 2. 处理 href == "__empty" 的情况
+            if let title = locator?.title {
+                let toc = try? await publication.tableOfContents().get()
+                //先通过 title 找到对应的 href
+                if let foundHref = findHref(forTitle: title, in: toc ?? []) {
+                    // 2b. 用找到的 href 执行查找
+                    return self.spreads.firstIndex { spread in
+                        spread.links.contains { $0.url().normalized.string == foundHref }
+                    } ?? 0
+                }
+                
+                return self.spreads.firstIndex { spread in
+                    spread.links.contains { $0.title == title }
+                } ?? 0
+            }
+            
+            // 3. 默认返回 0
+            return 0
         }()
 
         await paginationView.reloadAtIndex(
@@ -617,6 +643,21 @@ open class EPUBNavigatorViewController: UIViewController,
             readingProgression: viewModel.readingProgression
         )
         on(.loaded)
+    }
+    
+    func findHref(forTitle title: String, in links: [Link]) -> String? {
+        if let found = links.first(where: { $0.title == title }) {
+            return found.href
+        }
+        
+        for link in links {
+            let childHref = findHref(forTitle: title, in: link.children)
+            if childHref != nil {
+                return childHref
+            }
+        }
+        
+        return nil
     }
 
     private func loadedSpreadViewForHREF<T: URLConvertible>(_ href: T) -> EPUBSpreadView? {

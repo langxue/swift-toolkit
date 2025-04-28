@@ -232,6 +232,16 @@ final class PaginationView: UIView, Loggable {
         }
 
         await view.go(to: location)
+        if index == currentIndex {
+            if case let .locator(locator) = location, locator.href.string == "__paragraph" {
+                let pv = self.currentView as? EPUBSpreadView
+                let script = """
+                readium.scrollToParagraph("\(locator.text.after ?? "1"),\(locator.text.before ?? "2")")
+                """
+                await pv?.evaluateScript(script)
+            }
+        }
+        
         await loadNextPage()
     }
 

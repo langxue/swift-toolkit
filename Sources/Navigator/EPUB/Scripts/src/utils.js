@@ -173,6 +173,32 @@ export function scrollToPosition(position, dir) {
   }
 }
 
+export function scrollToParagraph(verseParams){
+    console.log("verseParams:",verseParams)
+    const rangeList = [];
+    const targetVerses = verseParams.split(',').map(v => parseInt(v.trim()));
+    const verses = document.querySelectorAll('p sup');
+    window.getSelection().removeAllRanges();
+
+
+    const paragraphs = Array.from(document.querySelectorAll('p sup'))
+        .filter(sup => targetVerses.includes(parseInt(sup.textContent)))
+        .map(sup => sup.closest('p'));
+
+    const range = document.createRange();
+    if (paragraphs.length >= 2) {
+        range.setStart(paragraphs[0], 0);
+        range.setEnd(paragraphs[paragraphs.length-1], paragraphs[paragraphs.length-1].childNodes.length);
+
+    }else{
+          range.selectNodeContents(paragraphs[0]);
+    }
+
+    window.getSelection().addRange(range);
+    scrollToRange(range)
+}
+
+
 // Scrolls to the first occurrence of the given text snippet.
 //
 // The expected text argument is a Locator object, as defined here:
