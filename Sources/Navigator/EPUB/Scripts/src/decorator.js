@@ -129,6 +129,14 @@ export function DecorationGroup(groupId, groupName) {
     items.push(item);
     layout(item);
   }
+    
+    function addWithRange(decoration,range) {
+      let id = groupId + "-" + lastItemId++;
+
+      let item = { id, decoration, range };
+      items.push(item);
+      layout(item);
+    }
 
   /**
    * Removes the decoration with given ID from the group.
@@ -316,6 +324,7 @@ export function DecorationGroup(groupId, groupName) {
 
   return {
     add,
+    addWithRange,
     remove,
     update,
     clear,

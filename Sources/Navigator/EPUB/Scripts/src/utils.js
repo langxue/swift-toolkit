@@ -194,7 +194,14 @@ export function scrollToParagraph(verseParams){
           range.selectNodeContents(paragraphs[0]);
     }
 
-    window.getSelection().addRange(range);
+//    window.getSelection().addRange(range);
+    
+    let group = readium.getDecorations('highlights');
+    group.addWithRange({
+        "element": "<div class=\"readium-highlight-1\" style=\"background-color: rgba(66, 165, 245, 0.3) !important;\"/>",
+        "id": "999",
+        "style": "highlight"
+    },range)
     scrollToRange(range)
 }
 

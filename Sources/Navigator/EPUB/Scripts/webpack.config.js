@@ -9,6 +9,9 @@ module.exports = {
     "fixed-wrapper-one": "./src/index-fixed-wrapper-one.js",
     "fixed-wrapper-two": "./src/index-fixed-wrapper-two.js",
   },
+//    optimization: {
+//      minimize: false 
+//    },
   output: {
     filename: "readium-[name].js",
     path: path.resolve(__dirname, "../Assets/Static/scripts"),
