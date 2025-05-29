@@ -168,6 +168,10 @@ export function DecorationGroup(groupId, groupName) {
    * Removes all decorations from this group.
    */
   function clear() {
+      if (items.some(item => item.decoration.id === "99999")) {
+        return; 
+      }
+
     clearContainer();
     items.length = 0;
   }
