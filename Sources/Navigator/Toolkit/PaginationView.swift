@@ -66,7 +66,7 @@ final class PaginationView: UIView, Loggable {
     private let preloadNextPositionCount: Int
 
     /// Queue of page index to be loaded next.
-    private var loadingIndexQueue: [(index: Int, location: PageLocation)] = []
+    private var loadingIndexQueue: [(index: Int, location: PageLocation, direction: PageIndexDirection)] = []
 
     /// Returns whether the page views are loaded.
     var isEmpty: Bool {
@@ -196,7 +196,7 @@ final class PaginationView: UIView, Loggable {
 
         // To make sure that the views the most likely to be visible are loaded first, we first load
         // the current one, then the next ones and to finish the previous ones.
-        scheduleLoadPage(at: index, location: location)
+        scheduleLoadPage(at: index, location: location, direction:.backward)
         let lastIndex = scheduleLoadPages(from: index, upToPositionCount: preloadNextPositionCount, direction: .forward, location: .start)
         let firstIndex = scheduleLoadPages(from: index, upToPositionCount: preloadPreviousPositionCount, direction: .backward, location: .end)
 
@@ -214,7 +214,7 @@ final class PaginationView: UIView, Loggable {
     }
 
     private func loadNextPage() async {
-        guard let (index, location) = loadingIndexQueue.popFirst() else {
+        guard let (index, location ,direction) = loadingIndexQueue.popFirst() else {
             return
         }
 
@@ -231,9 +231,11 @@ final class PaginationView: UIView, Loggable {
             return
         }
 
-        if index == currentIndex {
+        if(direction == .backward){
             await view.go(to: location)
-
+        }
+        
+        if index == currentIndex {
             if case let .locator(locator) = location, locator.href.string == "__paragraph" {
                 let pv = self.currentView as? EPUBSpreadView
                 let script = """
@@ -242,7 +244,7 @@ final class PaginationView: UIView, Loggable {
                 await pv?.evaluateScript(script)
             }
         }
-        
+                
         await loadNextPage()
     }
 
@@ -257,7 +259,7 @@ final class PaginationView: UIView, Loggable {
         let index = sourceIndex + direction.rawValue
         guard
             positionCount > 0,
-            scheduleLoadPage(at: index, location: location),
+            scheduleLoadPage(at: index, location: location, direction: direction),
             let indexPositionCount = delegate?.paginationView(self, positionCountAtIndex: index)
         else {
             return sourceIndex
@@ -275,13 +277,13 @@ final class PaginationView: UIView, Loggable {
     ///
     /// - Returns: Whether page is or will be loaded.
     @discardableResult
-    private func scheduleLoadPage(at index: Int, location: PageLocation) -> Bool {
+    private func scheduleLoadPage(at index: Int, location: PageLocation, direction: PageIndexDirection) -> Bool {
         guard 0 ..< pageCount ~= index else {
             return false
         }
 
         loadingIndexQueue.removeAll { $0.index == index }
-        loadingIndexQueue.append((index: index, location: location))
+        loadingIndexQueue.append((index: index, location: location, direction: direction))
         return true
     }
 
