@@ -231,8 +231,9 @@ final class PaginationView: UIView, Loggable {
             return
         }
 
-        await view.go(to: location)
         if index == currentIndex {
+            await view.go(to: location)
+
             if case let .locator(locator) = location, locator.href.string == "__paragraph" {
                 let pv = self.currentView as? EPUBSpreadView
                 let script = """
