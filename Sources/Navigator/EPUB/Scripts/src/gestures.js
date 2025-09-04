@@ -9,12 +9,11 @@ import { adjustPointToViewport } from "./rect";
 import { findNearestInteractiveElement } from "./dom";
 
 
-// 单击和双击计数器
 let singleClickCount = 0;
 let doubleClickCount = 0;
 
 let clickTimer = null;
-const delay = 300; // 双击检测的延迟时间（毫秒）
+const delay = 300;
 
 window.addEventListener("DOMContentLoaded", function () {
   // If we don't set the CSS cursor property to pointer, then the click events are not triggered pre-iOS 13.
@@ -24,16 +23,13 @@ window.addEventListener("DOMContentLoaded", function () {
 });
 
 function onClick(event) {
-    // 清除之前的计时器
     if (clickTimer) {
         clearTimeout(clickTimer);
         clickTimer = null;
-        // 如果已经有计时器，说明是双击
         handleDoubleClick(event);
         return;
     }
     
-    // 设置新的计时器延迟执行单击事件
     clickTimer = setTimeout(function() {
         clickTimer = null;
         handleSingleClick(event);
@@ -45,18 +41,16 @@ function handleDoubleClick(event){
     if (event.target.tagName.toLowerCase() === 'p' || event.target.tagName.toLowerCase() === 'span') {
         const range = document.createRange();
         range.selectNodeContents(event.target);
-//        const selection = window.getSelection();
-//        selection.removeAllRanges();
-//        selection.addRange(range);
+
         let group = readium.getDecorations('highlights');
+        group.clear();
         group.addWithRange(group.selectHighlightStyle("88888"), range);
     }
 }
 
 
 function handleSingleClick(event){
-    let group = readium.getDecorations('highlights');
-    group.remove("88888");
+    readium.getDecorations('highlights').clear();
     
     if (!getSelection().isCollapsed) {
       // There's an on-going selection, the tap will dismiss it so we don't forward it.
