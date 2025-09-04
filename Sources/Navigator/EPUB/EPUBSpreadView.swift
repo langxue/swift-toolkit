@@ -82,9 +82,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         addSubview(webView)
         setupWebView()
 
-        let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(didTapBackground))
-        gestureRecognizer.delegate = self
-        addGestureRecognizer(gestureRecognizer)
+//        let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(didTapBackground))
+//        gestureRecognizer.delegate = self
+//        addGestureRecognizer(gestureRecognizer)
 
         for script in scripts {
             webView.configuration.userContentController.addUserScript(script)
