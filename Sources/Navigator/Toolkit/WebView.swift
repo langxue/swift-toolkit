@@ -48,7 +48,8 @@ final class WebView: WKWebView {
     }
 
     override func buildMenu(with builder: any UIMenuBuilder) {
-        editingActions.buildMenu(with: builder)
+//        editingActions.buildMenu(with: builder)
+        editingActions.updateMenu(with: self)
 
         // Don't call super as it is the only way to remove the
         // "Copy Link with Highlight" menu item.

@@ -7,6 +7,7 @@
 import Foundation
 import ReadiumShared
 import UIKit
+import BBMenuController
 
 /// An `EditingAction` is an item in the text selection menu.
 ///
@@ -45,13 +46,13 @@ public struct EditingAction: Hashable {
     /// You need to implement the selector in one of your classes in the
     /// responder chain. Typically, in the `UIViewController` wrapping the
     /// navigator view controller.
-    public init(title: String, action: Selector) {
-        self.init(kind: .custom(UIMenuItem(title: title, action: action)))
+    public init(title: String, target: Any, action: Selector) {
+        self.init(kind: .custom(BBMenuItem(title: title, target: target, action: action)))
     }
 
     enum Kind: Hashable {
         case native([String])
-        case custom(UIMenuItem)
+        case custom(BBMenuItem)
     }
 
     let kind: Kind
@@ -69,7 +70,7 @@ public struct EditingAction: Hashable {
         }
     }
 
-    var menuItem: UIMenuItem? {
+    var menuItem: BBMenuItem? {
         switch kind {
         case .native:
             return nil
@@ -93,6 +94,7 @@ final class EditingActionsController {
     private let rights: UserRights
     private let canShare: Bool
     private var isEnabled = true
+    private var view = UIView()
 
     init(
         actions: [EditingAction],
@@ -162,16 +164,26 @@ final class EditingActionsController {
         // To reproduce, comment out and select Japanese text on a PDF.
         builder.remove(menu: .learn)
     }
+    
+    func updateMenu(with view: UIView) {
+        self.view = view.superview ?? UIView()
+    }
 
     func updateSharedMenuController() {
-        var items: [UIMenuItem] = []
+        var items: [BBMenuItem] = []
         if isEnabled, let selection = selection {
             items = actions
                 .filter { delegate?.editingActions(self, canPerformAction: $0, for: selection) ?? true }
                 .compactMap(\.menuItem)
         }
-        UIMenuController.shared.menuItems = items
-        UIMenuController.shared.update()
+        if let frame = selection?.frame {
+            BBMenuController.shared().menuItems = items
+            BBMenuController.shared().setTargetRect(frame, in: self.view)
+            BBMenuController.shared().setMenuVisible(true, animated: false)
+        }
+        
+//        UIMenuController.shared.menuItems = items
+//        UIMenuController.shared.update()
     }
 
     // MARK: - Copy
