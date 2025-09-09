@@ -7,6 +7,7 @@
 import { handleDecorationClickEvent } from "./decorator";
 import { adjustPointToViewport } from "./rect";
 import { findNearestInteractiveElement } from "./dom";
+import { getCurrentSelectionByRange } from "./selection";
 
 
 let singleClickCount = 0;
@@ -23,6 +24,9 @@ window.addEventListener("DOMContentLoaded", function () {
 });
 
 function onClick(event) {
+    let group = readium.getDecorations('highlights');
+    group.remove(group.tempSelectId);
+    
     if (clickTimer) {
         clearTimeout(clickTimer);
         clickTimer = null;
@@ -59,22 +63,18 @@ function handleDoubleClick(event){
         if (textNodes.length > 0) {
             range.setStart(textNodes[0], 0);
             range.setEnd(textNodes[textNodes.length - 1], textNodes[textNodes.length - 1].length);
-            
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
+
+            webkit.messageHandlers.selectionChanged.postMessage(getCurrentSelectionByRange(range));
         }
         
         
         let group = readium.getDecorations('highlights');
-        group.remove(group.tempSelectId);
         group.addWithRange(group.selectHighlightStyle(group.tempSelectId), range);
         
 //        const selection = window.getSelection();
 //        selection.removeAllRanges();
 //        selection.addRange(range);
 
-//        webkit.messageHandlers.selectionChanged.postMessage(getCurrentSelection());
 
 //        webkit.messageHandlers.tap.postMessage(clickEvent);
     }
@@ -82,9 +82,6 @@ function handleDoubleClick(event){
 
 
 function handleSingleClick(event){
-    let group = readium.getDecorations('highlights');
-    group.remove(group.tempSelectId);
-    
     if (!getSelection().isCollapsed) {
       // There's an on-going selection, the tap will dismiss it so we don't forward it.
       return;

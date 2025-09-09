@@ -30,6 +30,23 @@ export function getCurrentSelection() {
   return { href, text, rect };
 }
 
+export function getCurrentSelectionByRange(range) {
+  if (!readium.link) {
+    return null;
+  }
+  const href = readium.link.href;
+  if (!href) {
+    return null;
+  }
+  const text = getCurrentSelectionTextByRange(range);
+  if (!text) {
+    return null;
+  }
+  const rect = getSelectionRectByRange(range);
+  return { href, text, rect };
+}
+
+
 function getSelectionRect() {
   try {
     let sel = window.getSelection();
@@ -38,6 +55,15 @@ function getSelectionRect() {
     }
     let range = sel.getRangeAt(0);
 
+    return toNativeRect(range.getBoundingClientRect());
+  } catch (e) {
+    logError(e);
+    return null;
+  }
+}
+
+function getSelectionRectByRange(range) {
+  try {
     return toNativeRect(range.getBoundingClientRect());
   } catch (e) {
     logError(e);
@@ -78,6 +104,33 @@ function getCurrentSelectionText() {
     return undefined;
   }
 
+  const text = document.body.textContent;
+  const textRange = TextRange.fromRange(range).relativeTo(document.body);
+  const start = textRange.start.offset;
+  const end = textRange.end.offset;
+
+  const snippetLength = 200;
+
+  // Compute the text before the highlight, ignoring the first "word", which might be cut.
+  let before = text.slice(Math.max(0, start - snippetLength), start);
+  let firstWordStart = before.search(/\P{L}\p{L}/gu);
+  if (firstWordStart !== -1) {
+    before = before.slice(firstWordStart + 1);
+  }
+
+  // Compute the text after the highlight, ignoring the last "word", which might be cut.
+  let after = text.slice(end, Math.min(text.length, end + snippetLength));
+  let lastWordEnd = Array.from(after.matchAll(/\p{L}\P{L}/gu)).pop();
+  if (lastWordEnd !== undefined && lastWordEnd.index > 1) {
+    after = after.slice(0, lastWordEnd.index + 1);
+  }
+
+  return { highlight, before, after };
+}
+
+
+function getCurrentSelectionTextByRange(range) {
+    let highlight = range.toString()
   const text = document.body.textContent;
   const textRange = TextRange.fromRange(range).relativeTo(document.body);
   const start = textRange.start.offset;
