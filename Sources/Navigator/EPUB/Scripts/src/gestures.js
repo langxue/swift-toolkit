@@ -37,20 +37,53 @@ function onClick(event) {
 }
 
 function handleDoubleClick(event){
-    console.log("db click!!!!!")
+//    console.log("db click!!!!!")
     if (event.target.tagName.toLowerCase() === 'p' || event.target.tagName.toLowerCase() === 'span') {
         const range = document.createRange();
-        range.selectNodeContents(event.target);
-
+        
+        const textNodes = [];
+        const walk = document.createTreeWalker(
+            event.target,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+        );
+        
+        let node;
+        while (node = walk.nextNode()) {
+            if (!node.parentNode.closest('sup')) {
+                textNodes.push(node);
+            }
+        }
+        
+        if (textNodes.length > 0) {
+            range.setStart(textNodes[0], 0);
+            range.setEnd(textNodes[textNodes.length - 1], textNodes[textNodes.length - 1].length);
+            
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+        
+        
         let group = readium.getDecorations('highlights');
-        group.clear();
-        group.addWithRange(group.selectHighlightStyle("88888"), range);
+        group.remove(group.tempSelectId);
+        group.addWithRange(group.selectHighlightStyle(group.tempSelectId), range);
+        
+//        const selection = window.getSelection();
+//        selection.removeAllRanges();
+//        selection.addRange(range);
+
+//        webkit.messageHandlers.selectionChanged.postMessage(getCurrentSelection());
+
+//        webkit.messageHandlers.tap.postMessage(clickEvent);
     }
 }
 
 
 function handleSingleClick(event){
-    readium.getDecorations('highlights').clear();
+    let group = readium.getDecorations('highlights');
+    group.remove(group.tempSelectId);
     
     if (!getSelection().isCollapsed) {
       // There's an on-going selection, the tap will dismiss it so we don't forward it.

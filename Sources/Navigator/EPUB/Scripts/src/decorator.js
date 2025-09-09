@@ -18,6 +18,7 @@ const ResizeObserver = window.ResizeObserver || ResizeObserverPolyfill;
 let styles = new Map();
 let groups = new Map();
 var lastGroupId = 0;
+let tempSelectId = "88888"
 
 /**
  * Registers a list of additional supported Decoration Templates.
@@ -125,6 +126,7 @@ export function DecorationGroup(groupId, groupName) {
       return;
     }
 
+    remove(tempSelectId)
     let item = { id, decoration, range };
     items.push(item);
     layout(item);
@@ -336,6 +338,7 @@ export function DecorationGroup(groupId, groupName) {
     requestLayout,
     isActivable,
     setActivable,
+    tempSelectId,
     selectHighlightStyle:(id)=>{
         return {
             "element": "<div class=\"readium-highlight-1\" style=\"background-color: rgba(66, 165, 245, 0.3) !important;\"/>",
