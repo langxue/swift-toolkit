@@ -46,8 +46,8 @@ public struct EditingAction: Hashable {
     /// You need to implement the selector in one of your classes in the
     /// responder chain. Typically, in the `UIViewController` wrapping the
     /// navigator view controller.
-    public init(title: String, target: Any, action: Selector) {
-        self.init(kind: .custom(BBMenuItem(title: title, target: target, action: action)))
+    public init(title: String, image: UIImage, target: Any, action: Selector) {
+        self.init(kind: .custom(BBMenuItem(title: title, image: image, target: target, action: action)))
     }
 
     enum Kind: Hashable {
