@@ -53,6 +53,18 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     private var lastClick: ClickEvent? = nil
 
+    /// Tracks whether the user has an active text selection, used to prevent
+    /// the scroll view's paging gesture from hijacking selection drags.
+    private(set) var hasActiveSelection = false
+
+    /// Resets the selection-locked scroll state. Called as a safety net when
+    /// programmatically clearing the selection, so that scroll is guaranteed
+    /// to be re-enabled even if the JS `selectionchange` callback is lost.
+    func resetSelectionScrollLock() {
+        hasActiveSelection = false
+        scrollView.isScrollEnabled = true
+    }
+
     /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
 
@@ -273,6 +285,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// Called by the JavaScript layer when the user selection changed.
     private func selectionDidChange(_ body: Any) {
         if body is NSNull {
+            hasActiveSelection = false
+            scrollView.isScrollEnabled = true
             focusedResource = nil
             delegate?.spreadView(self, selectionDidChange: nil, frame: .zero)
             return
@@ -285,11 +299,18 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             let text = try? Locator.Text(json: selection["text"]),
             var frame = CGRect(json: selection["rect"])
         else {
+            hasActiveSelection = false
+            scrollView.isScrollEnabled = true
             focusedResource = nil
             delegate?.spreadView(self, selectionDidChange: nil, frame: .zero)
             log(.warning, "Invalid body for selectionDidChange: \(body)")
             return
         }
+
+        hasActiveSelection = true
+        // Disable scroll view scrolling while a selection is active so that
+        // dragging the selection handles does not trigger a page turn.
+        scrollView.isScrollEnabled = false
 
         focusedResource = spread.links.firstWithHREF(href)
         frame.origin = convertPointToNavigatorSpace(frame.origin)
@@ -517,7 +538,12 @@ extension EPUBSpreadView: UIScrollViewDelegate {
     }
 
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        webView.clearSelection()
+        // Only clear the selection if there is no active selection.
+        // When the user is dragging a selection handle, we must not
+        // clear the selection or steal the gesture.
+        if !hasActiveSelection {
+            webView.clearSelection()
+        }
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {

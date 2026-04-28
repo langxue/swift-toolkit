@@ -826,7 +826,11 @@ open class EPUBNavigatorViewController: UIViewController,
         }
 
         for (_, pageView) in paginationView.loadedViews {
-            (pageView as? EPUBSpreadView)?.webView.clearSelection()
+            let spreadView = pageView as? EPUBSpreadView
+            // Reset scroll lock synchronously as a safety net, in case the
+            // async JS selectionchange callback is lost.
+            spreadView?.resetSelectionScrollLock()
+            spreadView?.webView.clearSelection()
         }
     }
 
